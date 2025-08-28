@@ -1,0 +1,59 @@
+<section class="article-detail py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <article>
+                    <!-- Gambar besar di atas -->
+                    <div class="mb-4">
+                        <% if (article.image_url) { %>
+                        <img src="<%= article.image_url %>" alt="<%= article.title %>" class="img-fluid rounded w-100" style="height: 400px; object-fit: cover;">
+                        <% } %>
+                    </div>
+                    
+                    <!-- Judul artikel di bawah gambar -->
+                    <h1 class="fw-bold mb-3" style="font-size: 2.5rem; line-height: 1.2;"><%= article.title %></h1>
+                    
+                    <!-- Metadata -->
+                    <div class="d-flex align-items-center mb-4 flex-wrap">
+                        <span class="badge bg-primary me-3 mb-2"><%= article.category || 'Umum' %></span>
+                        <p class="text-muted mb-0 me-4">
+                            <i class="far fa-clock"></i> <%= article.created_at || article.date || 'Hari ini' %>
+                        </p>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-user"></i> Di tulis oleh: <%= article.nama_lengkap_santri || article.author || 'Admin' %>
+                        </p>
+                    </div>
+                    
+                    <!-- Konten artikel -->
+                    <div class="article-content">
+                        <%= article.content || article.description || 'Konten artikel tidak tersedia.' %>
+                    </div>
+                </article>
+            </div>
+            <div class="col-lg-4">
+                <aside class="related-articles">
+                    <h5 class="border-bottom border-danger pb-2 mb-3">Artikel Lainnya</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <a href="/" class="text-decoration-none">Kembali ke Beranda</a>
+                        </li>
+                    </ul>
+                    <ul class="list-unstyled">
+                        <% if (articles && articles.length > 0) { %>
+                            <% articles.slice(0, 8).forEach(relArticle => { %>
+                                <li class="mb-3">
+                                    <a href="/article/<%= relArticle.id %>" class="text-decoration-none d-flex align-items-start">
+                                        <img src="<%= relArticle.image_url || 'https://via.placeholder.com/80x60' %>" class="img-fluid rounded me-3 flex-shrink-0" alt="<%= relArticle.title %>" style="width: 80px; height: 60px; object-fit: cover;">
+                                        <div>
+                                            <h6 class="mb-1 text-dark fw-bold" style="font-size: 0.9rem; line-height: 1.3;"><%= relArticle.title %></h6>
+                                        </div>
+                                    </a>
+                                </li>
+                            <% }); %>
+                        <% } %>
+                    </ul>
+                </aside>
+            </div>
+        </div>
+    </div>
+</section>

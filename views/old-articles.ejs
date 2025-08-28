@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4" style="color: #0056b3;">Artikel Lama</h1>
+                <p class="text-center text-muted mb-5">Koleksi artikel-artikel sebelumnya dari Pondok Informatika</p>
+                
+                <div class="row" id="articles-container">
+                    <% if (articles && articles.length > 0) { %>
+                        <% articles.forEach(article => { %>
+                        <div class="col-md-4 mb-4 article-item">
+                            <div class="card h-100">
+                                <img src="<%= article.image_url || 'https://via.placeholder.com/400x250/0056b3/FFFFFF?text=Artikel+Lama' %>" 
+                                     class="card-img-top" alt="<%= article.title %>">
+                                <div class="card-body d-flex flex-column">
+                                    <span class="badge bg-primary mb-2" style="width: fit-content;"><%= article.kategori || 'Umum' %></span>
+                                    <h5 class="card-title"><%= article.title %></h5>
+                                    <p class="card-text flex-grow-1">
+                                        <%= article.description ? article.description.substring(0, 100) + '...' : 'Baca selengkapnya...' %>
+                                    </p>
+                                    <div class="mt-auto">
+                                        <small class="text-muted">
+                                            <i class="far fa-clock"></i> <%= article.created_at ? new Date(article.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : (article.date ? new Date(article.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Tanggal tidak tersedia') %>
+                                        </small>
+                                        <br>
+                                        <a href="/article/<%= article.id %>" class="btn btn-primary mt-2" style="background-color: #0056b3;">
+                                            Baca Selengkapnya
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                                <h5>Tidak ada artikel lama tersedia</h5>
+                                <p class="text-muted">Silakan coba lagi nanti</p>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+                
+                <!-- Load More Button -->
+                <div class="text-center mt-5" id="load-more-container">
+                    <button class="btn btn-primary btn-lg" id="load-more-btn" style="background-color: #0056b3;">
+                        <i class="fas fa-plus me-2"></i>Muat Lebih Banyak
+                    </button>
+                    <div class="spinner-border text-primary d-none" id="loading-spinner" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div
+                
+                <div class="text-center mt-4">
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Kembali ke Beranda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/old-articles.js"></script>
+</body>
+</html>
