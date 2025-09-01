@@ -10,7 +10,95 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!loadMoreBtn) return;
 
+    // Load initial articles
+    loadInitialArticles();
+
     loadMoreBtn.addEventListener('click', loadMoreArticles);
+
+    async function loadInitialArticles() {
+        try {
+            // For static HTML, fetch directly from the external API
+            const response = await fetch(`https://santri.pondokinformatika.id/api/get/news`);
+            const apiData = await response.json();
+
+            if (!apiData.data || apiData.data.length === 0) {
+                throw new Error('No articles available');
+            }
+
+            let articles = apiData.data;
+
+            // Sort articles by date (oldest first based on actual date)
+            articles.sort((a, b) => {
+                const dateA = new Date(a.created_at || a.date || '2000-01-01');
+                const dateB = new Date(b.created_at || b.date || '2000-01-01');
+                return dateA - dateB;
+            });
+
+            // Filter articles that are older than 2 days
+            const twoDaysAgo = new Date();
+            twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+            const oldArticles = articles.filter(article => {
+                const articleDate = new Date(article.created_at || article.date || '2000-01-01');
+                return articleDate < twoDaysAgo;
+            });
+
+            // Simulate pagination for static version
+            const startIndex = 0;
+            const endIndex = limit;
+            const paginatedArticles = oldArticles.slice(startIndex, endIndex);
+
+            const data = {
+                articles: paginatedArticles,
+                hasMore: endIndex < oldArticles.length,
+                total: oldArticles.length
+            };
+
+            // Clear loading spinner
+            articlesContainer.innerHTML = '';
+
+            if (data.articles && data.articles.length > 0) {
+                data.articles.forEach(article => {
+                    const articleElement = createArticleElement(article);
+                    articlesContainer.appendChild(articleElement);
+                });
+
+                hasMore = data.hasMore;
+
+                if (!hasMore) {
+                    loadMoreBtn.style.display = 'none';
+                } else {
+                    loadMoreBtn.classList.remove('d-none');
+                }
+            } else {
+                articlesContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="text-center py-5">
+                            <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                            <h5>Tidak ada artikel lama tersedia</h5>
+                            <p class="text-muted">Silakan coba lagi nanti</p>
+                        </div>
+                    </div>
+                `;
+                loadMoreBtn.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error loading initial articles:', error);
+            articlesContainer.innerHTML = `
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <h5>Terjadi Kesalahan</h5>
+                        <p class="text-muted">Gagal memuat artikel lama. Silakan refresh halaman.</p>
+                        <button class="btn btn-primary mt-2" onclick="location.reload()">
+                            <i class="fas fa-refresh me-2"></i>Coba Lagi
+                        </button>
+                    </div>
+                </div>
+            `;
+            loadMoreBtn.style.display = 'none';
+        }
+    }
 
     async function loadMoreArticles() {
         if (isLoading || !hasMore) return;
@@ -20,9 +108,44 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingSpinner.classList.remove('d-none');
 
         try {
+            // For static HTML, fetch directly from the external API and simulate pagination
+            const response = await fetch(`https://santri.pondokinformatika.id/api/get/news`);
+            const apiData = await response.json();
+
+            if (!apiData.data || apiData.data.length === 0) {
+                throw new Error('No articles available');
+            }
+
+            let articles = apiData.data;
+
+            // Sort articles by date (oldest first based on actual date)
+            articles.sort((a, b) => {
+                const dateA = new Date(a.created_at || a.date || '2000-01-01');
+                const dateB = new Date(b.created_at || b.date || '2000-01-01');
+                return dateA - dateB;
+            });
+
+            // Filter articles that are older than 2 days
+            const twoDaysAgo = new Date();
+            twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+            const oldArticles = articles.filter(article => {
+                const articleDate = new Date(article.created_at || article.date || '2000-01-01');
+                return articleDate < twoDaysAgo;
+            });
+
+            // Simulate pagination for static version
+            const startIndex = (currentPage - 1) * limit;
+            const endIndex = currentPage * limit;
+            const paginatedArticles = oldArticles.slice(startIndex, endIndex);
+
+            const data = {
+                articles: paginatedArticles,
+                hasMore: endIndex < oldArticles.length,
+                total: oldArticles.length
+            };
+
             currentPage++;
-            const response = await fetch(`/api/old-articles?page=${currentPage}&limit=${limit}`);
-            const data = await response.json();
 
             if (data.articles && data.articles.length > 0) {
                 data.articles.forEach(article => {
@@ -31,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 hasMore = data.hasMore;
-                
+
                 if (!hasMore) {
                     loadMoreBtn.style.display = 'none';
                 } else {

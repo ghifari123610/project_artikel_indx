@@ -5,15 +5,13 @@ const API_BASE_URL = 'https://santri.pondokinformatika.id/api/get/news';
 let allArticles = [];
 let currentPage = 1;
 const articlesPerPage = 10;
+let allTags = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Pondok Informatika News loaded successfully!');
-    
+
     // Load initial articles
     loadArticles();
-    
-    // Setup load more button
-    setupLoadMoreButton();
 });
 
 // Load articles from API
@@ -83,12 +81,13 @@ function renderHeroContent() {
     `;
 }
 
-// Render sidebar articles
 function renderSidebarArticles() {
     const sidebarContainer = document.getElementById('sidebar-articles');
+    const tagsContainer = document.getElementById('tags-container');
     
     if (allArticles.length <= 1) {
         sidebarContainer.innerHTML = '<p class="text-muted">Tidak ada artikel lainnya</p>';
+        tagsContainer.innerHTML = '<p class="text-muted">No tags available</p>';
         return;
     }
     
@@ -115,13 +114,22 @@ function renderSidebarArticles() {
     });
     
     sidebarContainer.innerHTML = sidebarHTML;
+
+    // Extract unique tags from allArticles
+    allTags = [...new Set(allArticles.map(article => article.kategori).filter(k => k))];
+
+    // Render tags
+    let tagsHTML = '';
+    allTags.forEach(tag => {
+        tagsHTML += `<a href="tag.html?tag=${encodeURIComponent(tag)}" class="badge bg-secondary text-decoration-none me-1 mb-1">${tag}</a>`;
+    });
+    tagsContainer.innerHTML = tagsHTML;
 }
 
-// Render main articles with pagination
+// Render main articles (display all articles since load more is removed)
 function renderMainArticles() {
     const container = document.getElementById('articles-container');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    
+
     if (allArticles.length === 0) {
         container.innerHTML = `
             <div class="col-12">
@@ -132,22 +140,20 @@ function renderMainArticles() {
                 </div>
             </div>
         `;
-        loadMoreBtn.style.display = 'none';
         return;
     }
-    
-    const startIndex = (currentPage - 1) * articlesPerPage;
-    const endIndex = Math.min(startIndex + articlesPerPage, allArticles.length);
-    const paginatedArticles = allArticles.slice(startIndex, endIndex);
-    
+
+    // Display all articles (or limit to a reasonable number, e.g., first 20)
+    const displayArticles = allArticles.slice(0, 20); // Show first 20 articles
+
     let articlesHTML = '';
-    
-    paginatedArticles.forEach(article => {
+
+    displayArticles.forEach(article => {
         articlesHTML += `
             <div class="col-md-6 mb-4 article-item fade-in">
                 <div class="card news-card h-100 border-0 shadow-sm">
                     <a href="article.html?id=${article.id}" class="text-decoration-none">
-                        <img src="${article.image_url || 'https://via.placeholder.com/400x250/DC3545/FFFFFF?text=News'}" 
+                        <img src="${article.image_url || 'https://via.placeholder.com/400x250/DC3545/FFFFFF?text=News'}"
                              class="card-img-top" alt="${article.title}">
                         <div class="card-body">
                             <span class="badge bg-primary mb-2">${article.kategori || 'Umum'}</span>
@@ -169,43 +175,11 @@ function renderMainArticles() {
             </div>
         `;
     });
-    
+
     container.innerHTML = articlesHTML;
-    
-    // Show/hide load more button
-    if (endIndex >= allArticles.length) {
-        loadMoreBtn.style.display = 'none';
-    } else {
-        loadMoreBtn.style.display = 'block';
-    }
 }
 
-// Setup load more button functionality
-function setupLoadMoreButton() {
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const loadMoreText = document.getElementById('load-more-text');
-    
-    loadMoreBtn.addEventListener('click', () => {
-        currentPage++;
-        loadMoreBtn.disabled = true;
-        loadingSpinner.classList.remove('d-none');
-        loadMoreText.textContent = 'Memuat...';
-        
-        setTimeout(() => {
-            renderMainArticles();
-            loadMoreBtn.disabled = false;
-            loadingSpinner.classList.add('d-none');
-            loadMoreText.textContent = 'Muat Lebih Banyak';
-            
-            // Scroll to newly loaded articles
-            const newArticles = document.querySelectorAll('.article-item');
-            if (newArticles.length > 0) {
-                newArticles[newArticles.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }, 500);
-    });
-}
+
 
 // Show loading state
 function showLoading() {
@@ -248,8 +222,6 @@ function showError(message) {
             `;
         }
     });
-    
-    document.getElementById('loadMoreBtn').style.display = 'none';
 }
 
 // Utility function to clean HTML content

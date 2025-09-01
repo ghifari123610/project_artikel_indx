@@ -181,6 +181,41 @@ app.get('/old-articles', async (req, res) => {
     }
 });
 
+// Tag page route
+app.get('/tag/:tag', async (req, res) => {
+    try {
+        const tag = req.params.tag;
+        const response = await axios.get(API_BASE_URL);
+        let articles = response.data.data || [];
+
+        // Filter articles by tag
+        const filteredArticles = articles.filter(article =>
+            article.kategori && article.kategori.toLowerCase() === tag.toLowerCase()
+        );
+
+        // Sort filtered articles by id descending (newest first)
+        filteredArticles.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+
+        // Get all unique tags for sidebar
+        const allTags = [...new Set(articles.map(article => article.kategori).filter(k => k))];
+
+        res.render('tag', {
+            title: `Tag: ${tag} - Pondok Informatika News`,
+            tag: tag,
+            articles: filteredArticles,
+            tags: allTags,
+            description: `Artikel dengan tag ${tag} dari Pondok Informatika`
+        });
+    } catch (error) {
+        console.error('Error fetching tag articles:', error);
+        res.render('error', {
+            title: 'Error',
+            message: 'Gagal memuat artikel tag',
+            description: 'Terjadi kesalahan saat memuat artikel dengan tag tersebut'
+        });
+    }
+});
+
 // API endpoint for loading more old articles
 app.get('/api/old-articles', async (req, res) => {
     try {
@@ -197,7 +232,7 @@ app.get('/api/old-articles', async (req, res) => {
         // Filter articles that are older than 2 days
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-        
+
         const oldArticles = articles.filter(article => {
             const articleDate = new Date(article.created_at || article.date || '2000-01-01');
             return articleDate < twoDaysAgo;
@@ -211,7 +246,7 @@ app.get('/api/old-articles', async (req, res) => {
 
         const paginatedArticles = oldArticles.slice(startIndex, endIndex);
 
-        res.json({ 
+        res.json({
             articles: paginatedArticles,
             hasMore: endIndex < oldArticles.length,
             total: oldArticles.length
